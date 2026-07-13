@@ -114,7 +114,7 @@ export default function ReportsView({ transactions }: ReportsViewProps) {
 
   // Export CSV Handler
   const handleExportCSV = () => {
-    const headers = ["Date", "Type", "Category", "Account", "Method", "Note", "Amount ($)"];
+    const headers = ["Date", "Type", "Category", "Account", "Method", "Note", "Amount (₹)"];
     const rows = filteredTxns.map((tx) => [
       new Date(tx.txnDate).toLocaleDateString(),
       tx.type,

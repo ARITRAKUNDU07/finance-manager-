@@ -164,7 +164,7 @@ export default function TransactionForm({ accounts, categories }: TransactionFor
           {/* Amount Input */}
           <div className="space-y-2">
             <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider block">
-              Amount ($)
+              Amount (₹)
             </label>
             <div className="relative">
               <input
@@ -177,7 +177,7 @@ export default function TransactionForm({ accounts, categories }: TransactionFor
                 placeholder="0.00"
               />
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 pointer-events-none">
-                attach_money
+                currency_rupee
               </span>
             </div>
           </div>

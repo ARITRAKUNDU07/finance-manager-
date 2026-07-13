@@ -241,7 +241,7 @@ export default function TransactionList({
           {/* Min Amount */}
           <div className="space-y-1">
             <label className="text-[10px] text-on-surface-variant uppercase tracking-wider block font-semibold">
-              Min Amount ($)
+              Min Amount (₹)
             </label>
             <input
               type="number"
@@ -255,7 +255,7 @@ export default function TransactionList({
           {/* Max Amount */}
           <div className="space-y-1">
             <label className="text-[10px] text-on-surface-variant uppercase tracking-wider block font-semibold">
-              Max Amount ($)
+              Max Amount (₹)
             </label>
             <input
               type="number"

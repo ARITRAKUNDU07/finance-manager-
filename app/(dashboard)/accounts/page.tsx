@@ -218,7 +218,7 @@ export default function AccountsPage() {
 
             <div className="space-y-2">
               <label htmlFor="startingBalance" className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider block">
-                Starting Balance ($)
+                Starting Balance (₹)
               </label>
               <input
                 id="startingBalance"

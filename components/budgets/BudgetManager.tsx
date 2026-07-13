@@ -304,7 +304,7 @@ export default function BudgetManager({
 
             <div className="space-y-2">
               <label htmlFor="limit" className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider block">
-                Monthly Limit ($)
+                Monthly Limit (₹)
               </label>
               <input
                 id="limit"

@@ -16,9 +16,9 @@ export function fromMinorUnits(amountMinor: number): number {
 }
 
 // Format integer minor units to currency string
-export function formatCurrency(amountMinor: number, symbol: string = "$"): string {
+export function formatCurrency(amountMinor: number, symbol: string = "₹"): string {
   const amount = fromMinorUnits(amountMinor);
-  return `${symbol}${amount.toLocaleString("en-US", {
+  return `${symbol}${amount.toLocaleString("en-IN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
