@@ -12,11 +12,14 @@ declare global {
 }
 
 const getPrisma = () => {
-  const databaseUrl = process.env.DATABASE_URL;
+  let databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
     console.error("DATABASE_URL is not set in process.env. Current directory:", process.cwd());
     throw new Error("DATABASE_URL is not set");
   }
+
+  // Strip any leading/trailing quotes from environment variable
+  databaseUrl = databaseUrl.replace(/^['"]|['"]$/g, "");
 
   // Convert mysql:// protocol to mariadb:// for adapter compatibility
   const connectionString = databaseUrl.replace(/^mysql:\/\//, "mariadb://");
