@@ -19,7 +19,7 @@ export default function DashboardContainer({
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-[#e5e2e2] font-sans">
+    <div className="min-h-screen bg-surface-dim text-on-surface font-sans">
       <Sidebar
         userEmail={userEmail}
         onLogout={onLogout}

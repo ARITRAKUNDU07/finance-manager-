@@ -56,17 +56,19 @@ export default function CategoryPieChart({ data }: CategoryPieChartProps) {
             <Tooltip
               formatter={(value: any) => formatCurrency(value)}
               contentStyle={{
-                backgroundColor: "rgba(30, 41, 59, 0.9)",
-                borderColor: "#334155",
-                borderRadius: "8px",
-                color: "#e5e2e2",
+                backgroundColor: "#ffffff",
+                borderColor: "#000000",
+                borderWidth: "3px",
+                borderRadius: "0px",
+                color: "#000000",
                 fontFamily: "Inter, sans-serif",
                 fontSize: "12px",
+                boxShadow: "3px 3px 0px 0px #000000",
               }}
             />
           </PieChart>
         </ResponsiveContainer>
-        <div className="absolute inset-2 rounded-full bg-[#0B0F19] flex flex-col items-center justify-center shadow-inner">
+        <div className="absolute inset-4 rounded-full bg-[#ffffff] border-3 border-black flex flex-col items-center justify-center shadow-inner">
           <span className="font-serif text-xl font-semibold text-on-surface">
             {formatCurrency(total)}
           </span>
