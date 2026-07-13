@@ -7,7 +7,9 @@ dotenv.config({ path: path.resolve(__dirname, ".env") });
 dotenv.config({ path: path.resolve(__dirname, ".env.local") });
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    serverExternalPackages: ["@prisma/client", "@prisma/adapter-mariadb", "mariadb"],
+  },
 };
 
 export default nextConfig;
