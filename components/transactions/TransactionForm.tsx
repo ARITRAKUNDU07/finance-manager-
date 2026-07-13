@@ -132,10 +132,11 @@ export default function TransactionForm({ accounts, categories }: TransactionFor
             <div className="relative">
               <select
                 name="accountId"
+                defaultValue=""
                 required
                 className="input-dark w-full rounded-lg py-3 pl-12 pr-10 text-on-surface text-sm appearance-none cursor-pointer"
               >
-                <option value="" disabled selected>
+                <option value="" disabled>
                   Select Account
                 </option>
                 {accounts.map((acc) => (
@@ -162,10 +163,11 @@ export default function TransactionForm({ accounts, categories }: TransactionFor
               <div className="relative">
                 <select
                   name="transferToAccountId"
+                  defaultValue=""
                   required
                   className="input-dark w-full rounded-lg py-3 pl-12 pr-10 text-on-surface text-sm appearance-none cursor-pointer"
                 >
-                  <option value="" disabled selected>
+                  <option value="" disabled>
                     Select Target Account
                   </option>
                   {accounts.map((acc) => (
@@ -190,10 +192,11 @@ export default function TransactionForm({ accounts, categories }: TransactionFor
               <div className="relative">
                 <select
                   name="categoryId"
+                  defaultValue=""
                   required
                   className="input-dark w-full rounded-lg py-3 pl-12 pr-10 text-on-surface text-sm appearance-none cursor-pointer"
                 >
-                  <option value="" disabled selected>
+                  <option value="" disabled>
                     Select Category
                   </option>
                   {categories.map((cat) => (

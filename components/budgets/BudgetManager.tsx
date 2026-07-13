@@ -243,10 +243,11 @@ export default function BudgetManager({
                 <select
                   id="categoryId"
                   name="categoryId"
+                  defaultValue=""
                   required
                   className="input-dark w-full rounded-lg py-3 pl-12 pr-10 text-on-surface text-sm appearance-none cursor-pointer"
                 >
-                  <option value="" disabled selected>
+                  <option value="" disabled>
                     Select Category
                   </option>
                   {categories.map((cat) => (
