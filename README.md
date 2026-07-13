@@ -38,18 +38,12 @@ Fortuna is designed around a modern **Neo-Brutalist** aesthetic with a premium G
 
 ## 💻 Local Installation & Setup
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/ARITRAKUNDU07/finance-manager-.git
-   cd finance-manager-
-   ```
-
-2. **Install dependencies:**
+1. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. **Start the development server:**
+2. **Start the development server:**
    ```bash
    npm run dev
    ```
