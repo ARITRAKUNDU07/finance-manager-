@@ -1,40 +1,40 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #facc15;
-  --color-primary-container: #000000;
-  --color-primary-fixed: #fef08a;
-  --color-primary-fixed-dim: #facc15;
-  --color-secondary: #2dd4bf;
-  --color-secondary-container: #0f2c2a;
-  --color-secondary-fixed: #99f6e4;
-  --color-secondary-fixed-dim: #2dd4bf;
-  --color-tertiary: #a78bfa;
-  --color-tertiary-container: #261642;
-  --color-tertiary-fixed: #ddd6fe;
-  --color-tertiary-fixed-dim: #a78bfa;
-  --color-surface: #0a0a0a;
-  --color-surface-bright: #1c1c1e;
-  --color-surface-dim: #0a0a0a;
-  --color-surface-container: #121212;
-  --color-surface-container-low: #0e0e0f;
-  --color-surface-container-high: #1a1a1b;
-  --color-surface-container-highest: #262628;
-  --color-surface-container-lowest: #050505;
-  --color-on-surface: #ffffff;
-  --color-on-surface-variant: #e0e0e0;
-  --color-outline: #ffffff;
-  --color-outline-variant: #333333;
+  --color-primary: #00a859; /* Gojek Green */
+  --color-primary-container: #ffffff;
+  --color-primary-fixed: #e6f6ee;
+  --color-primary-fixed-dim: #00a859;
+  --color-secondary: #00aed6; /* GoPay Blue */
+  --color-secondary-container: #e6f7fa;
+  --color-secondary-fixed: #cceef6;
+  --color-secondary-fixed-dim: #00aed6;
+  --color-tertiary: #e91e63; /* GoFood Pink */
+  --color-tertiary-container: #fde8ef;
+  --color-tertiary-fixed: #fad1df;
+  --color-tertiary-fixed-dim: #e91e63;
+  --color-surface: #ffffff;
+  --color-surface-bright: #ffffff;
+  --color-surface-dim: #f3f4f6;
+  --color-surface-container: #ffffff;
+  --color-surface-container-low: #fafafa;
+  --color-surface-container-high: #f5f5f5;
+  --color-surface-container-highest: #eeeeee;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-surface: #000000;
+  --color-on-surface-variant: #4b5563; /* Gray 600 */
+  --color-outline: #000000;
+  --color-outline-variant: #e5e7eb;
   --color-error: #f43f5e;
-  --color-error-container: #5c0f16;
+  --color-error-container: #ffe4e6;
   
   --font-sans: var(--font-inter);
   --font-serif: var(--font-outfit);
 }
 
 :root {
-  --background: #080808;
-  --foreground: #ffffff;
+  --background: #fcfbf7; /* Friendly warm white background from screenshot */
+  --foreground: #000000;
 }
 
 body {
@@ -42,54 +42,55 @@ body {
   color: var(--foreground);
 }
 
-/* Neo-Brutalist Card styling */
+/* Neo-Brutalist Gojek-Style Card */
 .glass-card {
-  background-color: #121212 !important;
-  border: 3px solid #ffffff !important;
-  box-shadow: 6px 6px 0px 0px #facc15 !important;
-  border-radius: 0px !important;
+  background-color: #ffffff !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 4px 4px 0px 0px #000000 !important;
+  border-radius: 20px !important; /* Rounded corners matching cards in the screenshot */
+  color: #000000 !important;
   transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .glass-card:hover {
   transform: translate(-3px, -3px);
-  box-shadow: 9px 9px 0px 0px #facc15 !important;
+  box-shadow: 7px 7px 0px 0px #000000 !important;
 }
 
 .glass-card:active {
   transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px 0px #facc15 !important;
+  box-shadow: 2px 2px 0px 0px #000000 !important;
 }
 
-/* Neo-Brutalist Input fields */
+/* Neo-Brutalist Gojek-Style Inputs */
 .input-dark, select, input[type="text"], input[type="number"], input[type="date"] {
-  background-color: #121212 !important;
-  border: 3px solid #ffffff !important;
-  box-shadow: 4px 4px 0px 0px #a78bfa !important;
-  border-radius: 0px !important;
-  color: #ffffff !important;
+  background-color: #ffffff !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 3px 3px 0px 0px #000000 !important;
+  border-radius: 12px !important;
+  color: #000000 !important;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
 .input-dark:focus, select:focus, input:focus {
   outline: none !important;
   transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0px 0px #a78bfa !important;
-  border-color: #ffffff !important;
+  box-shadow: 4px 4px 0px 0px #000000 !important;
+  border-color: #000000 !important;
 }
 
-/* Buttons styling override for Neo-Brutalist feel */
+/* Button overrides for Gojek Brutalism */
 button {
-  border-radius: 0px !important;
   cursor: pointer;
+  border-radius: 12px !important;
 }
 
-/* Primary Button Styling */
+/* Primary Gojek-Green Button */
 button.bg-primary, .bg-primary {
-  background-color: #facc15 !important;
-  color: #000000 !important;
-  border: 3px solid #ffffff !important;
-  box-shadow: 5px 5px 0px 0px #ffffff !important;
+  background-color: #00a859 !important; /* Gojek Green */
+  color: #ffffff !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 4px 4px 0px 0px #000000 !important;
   font-weight: 800 !important;
   font-family: var(--font-outfit), sans-serif !important;
   transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
@@ -97,55 +98,75 @@ button.bg-primary, .bg-primary {
 
 button.bg-primary:hover:not(:disabled), .bg-primary:hover {
   transform: translate(-3px, -3px) !important;
-  box-shadow: 8px 8px 0px 0px #ffffff !important;
+  box-shadow: 7px 7px 0px 0px #000000 !important;
 }
 
 button.bg-primary:active:not(:disabled), .bg-primary:active {
   transform: translate(2px, 2px) !important;
-  box-shadow: 2px 2px 0px 0px #ffffff !important;
+  box-shadow: 2px 2px 0px 0px #000000 !important;
 }
 
-/* Secondary Button / Action items with border styling */
+/* Secondary Button / Filter tags */
 button.border, .btn-secondary, button[type="button"]:not(.bg-primary) {
-  background-color: #121212 !important;
-  color: #ffffff !important;
-  border: 3px solid #ffffff !important;
-  box-shadow: 4px 4px 0px 0px #2dd4bf !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 3px 3px 0px 0px #000000 !important;
   font-weight: 700 !important;
   transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
 }
 
 button.border:hover:not(:disabled), button[type="button"]:not(.bg-primary):hover {
   transform: translate(-3px, -3px) !important;
-  box-shadow: 7px 7px 0px 0px #2dd4bf !important;
+  box-shadow: 6px 6px 0px 0px #000000 !important;
 }
 
 button.border:active:not(:disabled), button[type="button"]:not(.bg-primary):active {
   transform: translate(2px, 2px) !important;
-  box-shadow: 2px 2px 0px 0px #2dd4bf !important;
+  box-shadow: 1px 1px 0px 0px #000000 !important;
 }
 
-/* Warning cards and elements */
+/* Warnings and highlights */
 .warning-glow {
-  box-shadow: 6px 6px 0px 0px #f43f5e !important;
-  border-color: #f43f5e !important;
+  box-shadow: 4px 4px 0px 0px #e91e63 !important;
+  border-color: #e91e63 !important;
 }
 
 .progress-bar-bg {
-  background-color: #262626 !important;
-  border: 2px solid #ffffff;
-  border-radius: 0px !important;
+  background-color: #e5e7eb !important;
+  border: 2px solid #000000;
+  border-radius: 9999px !important; /* Fully rounded progress bars */
 }
 
-/* Trend labels */
+/* Trend tags styling */
 .trend-emerald {
-  color: #2dd4bf;
+  color: #00a859;
   font-weight: 800;
 }
 
 .trend-coral {
-  color: #f43f5e;
+  color: #e91e63;
   font-weight: 800;
+}
+
+/* Sidebar and Header layout overrides to fit Gojek-light style */
+aside {
+  background-color: #ffffff !important;
+  border-right: 3px solid #000000 !important;
+}
+
+nav {
+  background-color: rgba(252, 251, 247, 0.8) !important; /* Matching body warm-white */
+  border-bottom: 3px solid #000000 !important;
+  color: #000000 !important;
+}
+
+nav input {
+  background-color: #ffffff !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 2px 2px 0px 0px #000000 !important;
+  color: #000000 !important;
+  border-radius: 9999px !important; /* Rounded pill search as in mockup */
 }
 
 /* Animations */
