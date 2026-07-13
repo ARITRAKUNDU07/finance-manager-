@@ -4,6 +4,8 @@ import { getAccounts } from "@/app/actions/accounts";
 import { getCategories } from "@/app/actions/categories";
 import TransactionList from "@/components/transactions/TransactionList";
 
+export const dynamic = "force-dynamic";
+
 export default async function TransactionsPage() {
   const [transactions, accounts, categories] = await Promise.all([
     getTransactions(),

@@ -3,6 +3,8 @@ import { getBudgetsWithSpending } from "@/app/actions/budgets";
 import { getCategories } from "@/app/actions/categories";
 import BudgetManager from "@/components/budgets/BudgetManager";
 
+export const dynamic = "force-dynamic";
+
 export default async function BudgetsPage({
   searchParams,
 }: {

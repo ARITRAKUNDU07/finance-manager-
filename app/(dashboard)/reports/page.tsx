@@ -2,6 +2,8 @@ import React from "react";
 import { getTransactions } from "@/app/actions/transactions";
 import ReportsView from "@/components/reports/ReportsView";
 
+export const dynamic = "force-dynamic";
+
 export default async function ReportsPage() {
   const transactions = await getTransactions({
     maxAmount: undefined,

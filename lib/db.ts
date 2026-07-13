@@ -1,5 +1,6 @@
-import { PrismaClient } from "../prisma/generated/client/client";
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
 import dotenv from "dotenv";
 import path from "path";
 
@@ -21,10 +22,9 @@ const getPrisma = () => {
   // Strip any leading/trailing quotes from environment variable
   databaseUrl = databaseUrl.replace(/^['"]|['"]$/g, "");
 
-  // Convert mysql:// protocol to mariadb:// for adapter compatibility
-  const connectionString = databaseUrl.replace(/^mysql:\/\//, "mariadb://");
-  
-  const adapter = new PrismaMariaDb(connectionString);
+  const pool = new pg.Pool({ connectionString: databaseUrl });
+  const adapter = new PrismaPg(pool);
+
   return new PrismaClient({ adapter });
 };
 

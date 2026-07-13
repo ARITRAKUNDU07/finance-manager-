@@ -7,6 +7,8 @@ import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
 import CategoryPieChart from "@/components/dashboard/CategoryPieChart";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const session = await auth();
   const accounts = await getAccountsWithBalances();

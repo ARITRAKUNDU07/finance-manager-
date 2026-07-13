@@ -1,16 +1,18 @@
-import { PrismaClient } from "./generated/client/client";
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const databaseUrl = process.env.DATABASE_URL;
+let databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
   throw new Error("DATABASE_URL is not set");
 }
 
-const connectionString = databaseUrl.replace(/^mysql:\/\//, "mariadb://");
-const adapter = new PrismaMariaDb(connectionString);
+databaseUrl = databaseUrl.replace(/^['"]|['"]$/g, "");
+const pool = new pg.Pool({ connectionString: databaseUrl });
+const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 const presetCategories = [
