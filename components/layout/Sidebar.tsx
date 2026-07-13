@@ -7,9 +7,16 @@ import { usePathname } from "next/navigation";
 interface SidebarProps {
   userEmail: string | null | undefined;
   onLogout: () => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
-export default function Sidebar({ userEmail, onLogout }: SidebarProps) {
+export default function Sidebar({
+  userEmail,
+  onLogout,
+  isCollapsed,
+  onToggleCollapse,
+}: SidebarProps) {
   const pathname = usePathname();
 
   const links = [
@@ -27,22 +34,38 @@ export default function Sidebar({ userEmail, onLogout }: SidebarProps) {
   };
 
   return (
-    <aside className="bg-surface-container h-screen w-64 fixed left-0 top-0 border-r border-outline-variant/30 backdrop-blur-3xl hidden md:flex flex-col py-6 z-50">
+    <aside
+      className={`bg-surface-container h-screen fixed left-0 top-0 border-r border-outline-variant/30 backdrop-blur-3xl hidden md:flex flex-col py-6 z-50 transition-all duration-300 ease-in-out ${
+        isCollapsed ? "w-20" : "w-64"
+      }`}
+    >
+      {/* Floating Toggle Button */}
+      <button
+        onClick={onToggleCollapse}
+        className="absolute -right-3.5 top-6 bg-[#1e293b] border border-[#334155] text-primary hover:text-white rounded-full p-1 shadow-lg hover:bg-[#334155] cursor-pointer transition-colors z-50 flex items-center justify-center"
+      >
+        <span className="material-symbols-outlined text-[16px] font-bold">
+          {isCollapsed ? "chevron_right" : "chevron_left"}
+        </span>
+      </button>
+
       {/* Brand */}
-      <div className="px-6 mb-8 flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+      <div className={`px-4 mb-8 flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
+        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
           <span className="material-symbols-outlined text-primary font-bold text-xl">
             account_balance
           </span>
         </div>
-        <div>
-          <h1 className="font-serif text-xl font-bold text-primary tracking-tight leading-none">
-            Fortuna
-          </h1>
-          <p className="font-sans text-xs text-on-surface-variant mt-0.5">
-            Premium Wealth
-          </p>
-        </div>
+        {!isCollapsed && (
+          <div className="animate-fade-in-up">
+            <h1 className="font-serif text-xl font-bold text-primary tracking-tight leading-none">
+              Fortuna
+            </h1>
+            <p className="font-sans text-xs text-on-surface-variant mt-0.5">
+              Premium Wealth
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Nav Links */}
@@ -57,43 +80,57 @@ export default function Sidebar({ userEmail, onLogout }: SidebarProps) {
                 active
                   ? "text-primary bg-secondary-container/30 border-r-2 border-primary font-medium"
                   : "text-on-surface-variant hover:bg-secondary-container/10 hover:text-primary"
-              }`}
+              } ${isCollapsed ? "justify-center px-0" : ""}`}
+              title={isCollapsed ? link.label : ""}
             >
               <span
-                className="material-symbols-outlined"
+                className="material-symbols-outlined shrink-0"
                 style={{ fontVariationSettings: `'FILL' ${active ? 1 : 0}` }}
               >
                 {link.icon}
               </span>
-              <span className="font-sans text-sm">{link.label}</span>
+              {!isCollapsed && (
+                <span className="font-sans text-sm animate-fade-in-up">{link.label}</span>
+              )}
             </Link>
           );
         })}
       </nav>
 
       {/* Footer Section */}
-      <div className="px-6 mt-auto">
-        <Link href="/transactions/new">
-          <button className="w-full bg-[#1E293B] hover:bg-[#334155] border border-[#334155] text-on-surface font-sans text-sm py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 mb-6 cursor-pointer">
-            <span className="material-symbols-outlined text-sm">add</span>
-            Add Transaction
-          </button>
-        </Link>
+      <div className="px-4 mt-auto flex flex-col items-center">
+        {isCollapsed ? (
+          <Link href="/transactions/new" title="Add Transaction" className="w-10 h-10 mb-6 shrink-0">
+            <button className="w-full h-full bg-primary hover:bg-primary/90 text-[#2c303b] rounded-full transition-colors flex items-center justify-center cursor-pointer shadow-[0_0_15px_rgba(195,198,212,0.15)]">
+              <span className="material-symbols-outlined text-sm font-bold">add</span>
+            </button>
+          </Link>
+        ) : (
+          <Link href="/transactions/new" className="w-full mb-6">
+            <button className="w-full bg-[#1E293B] hover:bg-[#334155] border border-[#334155] text-on-surface font-sans text-sm py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer">
+              <span className="material-symbols-outlined text-sm">add</span>
+              Add Transaction
+            </button>
+          </Link>
+        )}
         
-        {userEmail && (
-          <div className="px-3 py-1 mb-4 text-xs text-on-surface-variant truncate font-sans">
+        {!isCollapsed && userEmail && (
+          <div className="px-3 py-1 mb-4 text-xs text-on-surface-variant truncate font-sans w-full animate-fade-in-up">
             Logged in as: <br />
             <span className="text-[#e5e2e2] font-semibold">{userEmail}</span>
           </div>
         )}
 
-        <div className="space-y-1">
+        <div className="w-full">
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-error transition-colors rounded-lg text-sm text-left cursor-pointer font-sans"
+            className={`w-full flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-error transition-colors rounded-lg text-sm text-left cursor-pointer font-sans ${
+              isCollapsed ? "justify-center px-0" : ""
+            }`}
+            title={isCollapsed ? "Logout" : ""}
           >
-            <span className="material-symbols-outlined text-lg">logout</span>
-            <span>Logout</span>
+            <span className="material-symbols-outlined text-lg shrink-0">logout</span>
+            {!isCollapsed && <span className="animate-fade-in-up">Logout</span>}
           </button>
         </div>
       </div>

@@ -4,11 +4,16 @@ import React from "react";
 
 interface HeaderProps {
   userEmail: string | null | undefined;
+  isCollapsed: boolean;
 }
 
-export default function Header({ userEmail }: HeaderProps) {
+export default function Header({ userEmail, isCollapsed }: HeaderProps) {
   return (
-    <nav className="bg-surface/40 fixed top-0 right-0 w-full md:w-[calc(100%-16rem)] h-16 backdrop-blur-3xl border-b border-outline-variant/30 flex justify-between items-center px-6 z-40">
+    <nav
+      className={`bg-surface/40 fixed top-0 right-0 w-full h-16 backdrop-blur-3xl border-b border-outline-variant/30 flex justify-between items-center px-6 z-40 transition-all duration-300 ease-in-out ${
+        isCollapsed ? "md:w-[calc(100%-5rem)]" : "md:w-[calc(100%-16rem)]"
+      }`}
+    >
       <div className="flex items-center">
         {/* Brand for mobile screen */}
         <div className="flex items-center gap-2 md:hidden">

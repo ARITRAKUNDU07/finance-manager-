@@ -1,8 +1,6 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
-import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
-import MobileNav from "@/components/layout/MobileNav";
+import DashboardContainer from "@/components/layout/DashboardContainer";
 
 export default async function DashboardLayout({
   children,
@@ -21,15 +19,8 @@ export default async function DashboardLayout({
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-[#e5e2e2] font-sans">
-      <Sidebar userEmail={session.user.email} onLogout={handleLogout} />
-      <Header userEmail={session.user.email} />
-      
-      <div className="min-h-screen flex flex-col">
-        {children}
-      </div>
-
-      <MobileNav />
-    </div>
+    <DashboardContainer userEmail={session.user.email} onLogout={handleLogout}>
+      {children}
+    </DashboardContainer>
   );
 }
