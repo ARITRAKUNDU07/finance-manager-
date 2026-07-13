@@ -1,0 +1,68 @@
+datasource db {
+  provider = "mysql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated/client"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  createdAt     DateTime  @default(now())
+  accounts      Account[]
+  categories    Category[]
+  transactions  Transaction[]
+  budgets       Budget[]
+}
+
+model Account {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  name            String
+  type            String   // cash, bank, card
+  startingBalance Int      // minor units
+  createdAt       DateTime @default(now())
+  transactions    Transaction[]
+}
+
+model Category {
+  id       String  @id @default(cuid())
+  userId   String? // null = preset category
+  user     User?   @relation(fields: [userId], references: [id])
+  name     String
+  icon     String?
+  isPreset Boolean @default(false)
+  transactions Transaction[]
+  budgets  Budget[]
+}
+
+model Transaction {
+  id                  String   @id @default(cuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id])
+  accountId           String
+  account             Account  @relation(fields: [accountId], references: [id])
+  categoryId          String?
+  category            Category? @relation(fields: [categoryId], references: [id])
+  type                String   // income, expense, transfer
+  amountMinor         Int      // always positive, in minor units
+  transferToAccountId String?
+  note                String?
+  paymentMethod       String?
+  txnDate             DateTime
+  createdAt           DateTime @default(now())
+}
+
+model Budget {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  monthYear   String   // e.g. "2026-07"
+  limitMinor  Int
+}
