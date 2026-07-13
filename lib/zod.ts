@@ -15,7 +15,7 @@ export const loginSchema = z.object({
 export const accountSchema = z.object({
   name: z.string().min(1, "Account name is required"),
   type: z.enum(["cash", "bank", "card"], {
-    errorMap: () => ({ message: "Type must be cash, bank, or card" }),
+    message: "Type must be cash, bank, or card",
   }),
   startingBalance: z.number().int("Balance must be an integer (minor units)"),
 });
