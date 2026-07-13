@@ -1,14 +1,28 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { getAccounts } from "@/app/actions/accounts";
-import { getCategories } from "@/app/actions/categories";
+import { getStoredAccounts, getStoredCategories, StoredAccount, StoredCategory } from "@/lib/storage";
 import TransactionForm from "@/components/transactions/TransactionForm";
 
-export default async function NewTransactionPage() {
-  const [accounts, categories] = await Promise.all([
-    getAccounts(),
-    getCategories(),
-  ]);
+export default function NewTransactionPage() {
+  const [mounted, setMounted] = useState(false);
+  const [accounts, setAccounts] = useState<StoredAccount[]>([]);
+  const [categories, setCategories] = useState<StoredCategory[]>([]);
+
+  useEffect(() => {
+    setAccounts(getStoredAccounts());
+    setCategories(getStoredCategories());
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pt-6 pb-12">
@@ -24,8 +38,8 @@ export default async function NewTransactionPage() {
           <h2 className="font-serif text-3xl text-on-surface font-semibold">
             New Transaction
           </h2>
-          <p className="font-sans text-sm text-on-surface-variant mt-1">
-            Record a new movement of capital.
+          <p className="font-sans text-sm text-on-surface-variant">
+            Record a new transaction to your ledger.
           </p>
         </div>
       </div>

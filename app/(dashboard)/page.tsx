@@ -1,43 +1,54 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { getAccountsWithBalances } from "@/app/actions/accounts";
-import { getTransactions } from "@/app/actions/transactions";
 import { formatCurrency } from "@/lib/utils";
-import { prisma } from "@/lib/db";
-import { auth } from "@/auth";
+import {
+  getStoredAccountsWithBalances,
+  getStoredTransactions,
+  getStoredCategories,
+  AccountWithBalance,
+  StoredTransaction,
+  StoredCategory,
+} from "@/lib/storage";
 import CategoryPieChart from "@/components/dashboard/CategoryPieChart";
 
-export const dynamic = "force-dynamic";
+export default function DashboardPage() {
+  const [mounted, setMounted] = useState(false);
+  const [accounts, setAccounts] = useState<AccountWithBalance[]>([]);
+  const [transactions, setTransactions] = useState<StoredTransaction[]>([]);
+  const [categories, setCategories] = useState<StoredCategory[]>([]);
 
-export default async function DashboardPage() {
-  const session = await auth();
-  const accounts = await getAccountsWithBalances();
-  
+  useEffect(() => {
+    setAccounts(getStoredAccountsWithBalances());
+    setTransactions(getStoredTransactions());
+    setCategories(getStoredCategories());
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   // Calculate total balance
   const totalBalanceMinor = accounts.reduce((acc, curr) => acc + curr.balance, 0);
 
   // Get current month start and end dates
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  const currentMonthYear = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+  // Filter transactions for this month
+  const monthlyTxns = transactions.filter(t => t.txnDate.startsWith(currentMonthYear));
 
   // Get recent 5 transactions
-  const recentTransactions = await getTransactions({
-    maxAmount: undefined,
-    minAmount: undefined,
-  });
-  const displayedTransactions = recentTransactions.slice(0, 5);
-
-  // Fetch monthly totals for Income vs Expense
-  const monthlyTxns = await prisma.transaction.findMany({
-    where: {
-      userId: session?.user?.id,
-      txnDate: {
-        gte: startOfMonth,
-        lte: endOfMonth,
-      },
-    },
-  });
+  const displayedTransactions = transactions
+    .slice()
+    .sort((a, b) => new Date(b.txnDate).getTime() - new Date(a.txnDate).getTime())
+    .slice(0, 5);
 
   const monthlyIncome = monthlyTxns
     .filter((tx) => tx.type === "income")
@@ -48,8 +59,14 @@ export default async function DashboardPage() {
     .reduce((acc, curr) => acc + curr.amountMinor, 0);
 
   // Calculate Category Breakdown
-  const categorySpendingMap = new Map<string, { value: number; color: string }>();
-  
+  const categorySpendingMap = new Map<string, number>();
+  monthlyTxns
+    .filter((tx) => tx.type === "expense" && tx.categoryId)
+    .forEach((tx) => {
+      const catId = tx.categoryId!;
+      categorySpendingMap.set(catId, (categorySpendingMap.get(catId) || 0) + tx.amountMinor);
+    });
+
   // Curated color map for preset categories
   const categoryColorMap: Record<string, string> = {
     Food: "#f59e0b",         // Amber
@@ -61,49 +78,17 @@ export default async function DashboardPage() {
     Other: "#6b7280",        // Gray
   };
 
-  monthlyTxns
-    .filter((tx) => tx.type === "expense" && tx.categoryId)
-    .forEach((tx) => {
-      // Find category name
-      const categoryId = tx.categoryId!;
-      // For simplicity, we can load categories or since we know they are in db, we fetch them
-    });
-
-  // Let's perform a direct aggregation of categories for correct display
-  const categorySpendingAgg = await prisma.transaction.groupBy({
-    by: ["categoryId"],
-    where: {
-      userId: session?.user?.id,
-      type: "expense",
-      txnDate: {
-        gte: startOfMonth,
-        lte: endOfMonth,
-      },
-      categoryId: { not: null },
-    },
-    _sum: {
-      amountMinor: true,
-    },
-  });
-
-  // Fetch categories details for the grouped ids
-  const categoriesList = await prisma.category.findMany({
-    where: {
-      id: { in: categorySpendingAgg.map((c) => c.categoryId!).filter(Boolean) },
-    },
-  });
-
-  const pieChartData = categorySpendingAgg.map((agg) => {
-    const cat = categoriesList.find((c) => c.id === agg.categoryId);
+  const pieChartData: { name: string; value: number; color: string }[] = [];
+  categorySpendingMap.forEach((value, catId) => {
+    const cat = categories.find((c) => c.id === catId);
     const name = cat?.name || "Other";
-    return {
+    pieChartData.push({
       name,
-      value: agg._sum.amountMinor || 0,
+      value,
       color: categoryColorMap[name] || "#6b7280",
-    };
+    });
   });
 
-  // Category Icons Helper
   const getCategoryIcon = (name: string) => {
     const icons: Record<string, string> = {
       Food: "restaurant",
@@ -165,7 +150,6 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Balance Summary Card */}
             <div className="lg:col-span-8 glass-card rounded-2xl p-8 relative overflow-hidden animate-fade-in-up delay-100 flex flex-col justify-between min-h-[220px]">
-              {/* Subtle ambient glow */}
               <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
               <div>
                 <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider block mb-2 font-sans">
@@ -175,7 +159,7 @@ export default async function DashboardPage() {
                   {formatCurrency(totalBalanceMinor)}
                 </h3>
               </div>
-              <div className="grid grid-cols-3 gap-4 border-t border-[#334155]/40 pt-4 mt-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-[#334155]/40 pt-4 mt-6">
                 {accounts.map((acc) => (
                   <div key={acc.id} className="truncate">
                     <span className="text-[10px] text-on-surface-variant uppercase block font-sans">
@@ -198,124 +182,134 @@ export default async function DashboardPage() {
                     Monthly Income
                   </span>
                   <span className="material-symbols-outlined text-[#10B981] text-sm">
-                    arrow_downward
+                    arrow_upward
                   </span>
                 </div>
-                <h4 className="font-serif text-2xl font-semibold text-[#10B981] mb-1">
+                <h4 className="font-serif text-2xl font-semibold text-[#10B981] tracking-tight">
                   {formatCurrency(monthlyIncome)}
                 </h4>
-                {/* Visual feedback trend */}
-                <div className="h-1 w-full bg-[#10B981]/10 rounded-full overflow-hidden mt-3">
-                  <div className="h-full bg-[#10B981] w-[65%] rounded-full"></div>
-                </div>
               </div>
 
-              {/* Expenses */}
+              {/* Expense */}
               <div className="glass-card rounded-2xl p-6 flex-1 flex flex-col justify-center relative overflow-hidden">
                 <div className="flex justify-between items-start mb-2">
                   <span className="text-xs font-semibold text-on-surface-variant uppercase font-sans">
                     Monthly Expenses
                   </span>
-                  <span className="material-symbols-outlined text-[#F43F5E] text-sm">
-                    arrow_upward
+                  <span className="material-symbols-outlined text-error text-sm">
+                    arrow_downward
                   </span>
                 </div>
-                <h4 className="font-serif text-2xl font-semibold text-[#F43F5E] mb-1">
+                <h4 className="font-serif text-2xl font-semibold text-error tracking-tight">
                   {formatCurrency(monthlyExpense)}
                 </h4>
-                <div className="h-1 w-full bg-[#F43F5E]/10 rounded-full overflow-hidden mt-3">
-                  <div className="h-full bg-[#F43F5E] w-[45%] rounded-full"></div>
-                </div>
               </div>
             </div>
           </div>
 
-          {/* Bottom Row: Spending & Transactions */}
+          {/* Bottom Row: Recent Transactions & Category Breakdown */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Spending Categories */}
-            <div className="lg:col-span-5 glass-card rounded-2xl p-6 animate-fade-in-up delay-300">
-              <h3 className="font-serif text-lg font-semibold text-on-surface mb-6">
-                Spending breakdown
-              </h3>
-              <CategoryPieChart data={pieChartData} />
-            </div>
-
-            {/* Recent Transactions */}
-            <div className="lg:col-span-7 glass-card rounded-2xl p-6 animate-fade-in-up delay-300">
+            {/* Recent Transactions List */}
+            <div className="lg:col-span-8 glass-card rounded-2xl p-6 animate-fade-in-up delay-300">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="font-serif text-lg font-semibold text-on-surface">
                   Recent Transactions
                 </h3>
-                <Link
-                  className="text-xs font-sans text-primary hover:underline"
-                  href="/transactions"
-                >
-                  View all
+                <Link href="/transactions" className="text-xs text-primary hover:underline font-sans">
+                  View All
                 </Link>
               </div>
 
               {displayedTransactions.length === 0 ? (
-                <div className="h-64 flex flex-col justify-center items-center text-on-surface-variant font-sans">
-                  <span className="material-symbols-outlined text-4xl mb-2 text-[#334155]">
-                    receipt_long
-                  </span>
-                  <p className="text-sm">No transactions recorded yet.</p>
-                </div>
+                <p className="text-sm text-on-surface-variant text-center py-12 font-sans">
+                  No transactions added yet.
+                </p>
               ) : (
                 <div className="space-y-4">
                   {displayedTransactions.map((tx) => {
-                    const isExpense = tx.type === "expense";
-                    const isIncome = tx.type === "income";
-                    const categoryName = tx.category?.name || "Other";
+                    const matchedAccount = accounts.find((a) => a.id === tx.accountId);
+                    const matchedCategory = categories.find((c) => c.id === tx.categoryId);
+                    const categoryName = matchedCategory?.name || "Other";
                     
                     return (
                       <div
                         key={tx.id}
-                        className="flex items-center justify-between p-3 hover:bg-secondary-container/10 rounded-xl transition-colors border-b border-[#334155]/30 last:border-0"
+                        className="flex items-center justify-between p-3 rounded-xl hover:bg-surface-container/50 transition-colors"
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 min-w-0">
                           <div
-                            className={`h-10 w-10 rounded-full flex items-center justify-center border ${getCategoryColorClass(
+                            className={`h-10 w-10 rounded-full flex items-center justify-center border shrink-0 ${getCategoryColorClass(
                               categoryName
                             )}`}
                           >
-                            <span className="material-symbols-outlined text-sm">
-                              {tx.type === "transfer" ? "swap_horiz" : getCategoryIcon(categoryName)}
+                            <span className="material-symbols-outlined">
+                              {getCategoryIcon(categoryName)}
                             </span>
                           </div>
-                          <div>
-                            <p className="font-sans text-sm font-semibold text-on-surface">
-                              {tx.type === "transfer"
-                                ? `Transfer to ${tx.transferToAccountId ? "another account" : "account"}`
-                                : tx.note || categoryName}
-                            </p>
-                            <p className="font-sans text-[11px] text-on-surface-variant">
-                              {new Date(tx.txnDate).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })}{" "}
-                              • {tx.paymentMethod || "Method"}
-                            </p>
+                          <div className="truncate">
+                            <span className="text-sm font-semibold text-on-surface block font-sans truncate">
+                              {tx.note || (tx.type === "transfer" ? "Transfer" : categoryName)}
+                            </span>
+                            <span className="text-[10px] text-on-surface-variant font-sans">
+                              {matchedAccount?.name} • {new Date(tx.txnDate).toLocaleDateString()}
+                            </span>
                           </div>
                         </div>
-                        <span
-                          className={`font-sans text-sm font-semibold ${
-                            isExpense
-                              ? "text-[#F43F5E]"
-                              : isIncome
-                              ? "text-[#10B981]"
-                              : "text-primary-fixed-dim"
-                          }`}
-                        >
-                          {isExpense ? "-" : isIncome ? "+" : ""}
-                          {formatCurrency(tx.amountMinor)}
-                        </span>
+                        <div className="text-right shrink-0">
+                          <span
+                            className={`text-sm font-semibold font-sans block ${
+                              tx.type === "income"
+                                ? "text-[#10B981]"
+                                : tx.type === "transfer"
+                                ? "text-on-surface-variant"
+                                : "text-error"
+                            }`}
+                          >
+                            {tx.type === "income" ? "+" : tx.type === "transfer" ? "" : "-"}
+                            {formatCurrency(tx.amountMinor)}
+                          </span>
+                          <span className="text-[9px] text-on-surface-variant/70 font-sans block mt-0.5">
+                            {tx.paymentMethod ? tx.paymentMethod.toUpperCase() : ""}
+                          </span>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
               )}
+            </div>
+
+            {/* Category Breakdown (Pie Chart) */}
+            <div className="lg:col-span-4 glass-card rounded-2xl p-6 flex flex-col animate-fade-in-up delay-300">
+              <h3 className="font-serif text-lg font-semibold text-on-surface mb-6">
+                Category Spending
+              </h3>
+              <div className="flex-1 flex flex-col justify-center items-center">
+                {pieChartData.length === 0 ? (
+                  <p className="text-sm text-on-surface-variant text-center py-12 font-sans">
+                    No expense data for this month.
+                  </p>
+                ) : (
+                  <>
+                    <div className="w-full h-48 relative">
+                      <CategoryPieChart data={pieChartData} />
+                    </div>
+                    <div className="w-full grid grid-cols-2 gap-3 mt-6">
+                      {pieChartData.slice(0, 6).map((item) => (
+                        <div key={item.name} className="flex items-center gap-2">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: item.color }}
+                          ></span>
+                          <span className="text-xs text-on-surface-variant font-sans truncate">
+                            {item.name} ({formatCurrency(item.value)})
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </>

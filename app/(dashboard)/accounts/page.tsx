@@ -1,34 +1,27 @@
 "use client";
 
-import React, { useActionState, useEffect, useRef } from "react";
-import { createAccount } from "@/app/actions/accounts";
+import React, { useEffect, useRef, useState } from "react";
 import { formatCurrency } from "@/lib/utils";
-
-// Custom type for Account from our DB
-interface AccountItem {
-  id: string;
-  name: string;
-  type: string;
-  startingBalance: number;
-}
+import {
+  getStoredAccountsWithBalances,
+  saveStoredAccount,
+  deleteStoredAccount,
+  AccountWithBalance,
+} from "@/lib/storage";
 
 export default function AccountsPage() {
-  const [state, formAction, isPending] = useActionState(createAccount, null);
   const formRef = useRef<HTMLFormElement>(null);
-  
-  // We can fetch accounts using a client-side fetch or just pass it down. But wait!
-  // To keep it simple and load instantly, we can use a server component or fetch dynamically.
-  // Let's fetch the accounts dynamically from the client since it's an interactive page!
-  const [accounts, setAccounts] = React.useState<AccountItem[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [accounts, setAccounts] = useState<AccountWithBalance[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const fetchAccounts = async () => {
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+
+  const loadAccounts = () => {
     try {
-      const response = await fetch("/api/accounts");
-      if (response.ok) {
-        const data = await response.json();
-        setAccounts(data);
-      }
+      const data = getStoredAccountsWithBalances();
+      setAccounts(data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -37,15 +30,62 @@ export default function AccountsPage() {
   };
 
   useEffect(() => {
-    fetchAccounts();
+    loadAccounts();
   }, []);
 
-  useEffect(() => {
-    if (state?.success) {
-      fetchAccounts();
-      formRef.current?.reset();
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(false);
+    setIsPending(true);
+
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name") as string;
+    const type = formData.get("type") as string;
+    const startingBalanceStr = formData.get("startingBalance") as string;
+
+    const startingBalanceVal = parseFloat(startingBalanceStr);
+    if (isNaN(startingBalanceVal)) {
+      setError("Please enter a valid starting balance.");
+      setIsPending(false);
+      return;
     }
-  }, [state]);
+
+    const startingBalance = Math.round(startingBalanceVal * 100);
+
+    try {
+      saveStoredAccount({
+        name,
+        type,
+        startingBalance,
+      });
+
+      loadAccounts();
+      setSuccess(true);
+      formRef.current?.reset();
+    } catch (err: any) {
+      setError(err?.message || "Failed to create account.");
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this account? Associated transactions will remain but reference an unknown account."
+      )
+    ) {
+      return;
+    }
+    
+    try {
+      deleteStoredAccount(id);
+      loadAccounts();
+    } catch (err) {
+      alert("Failed to delete account.");
+    }
+  };
 
   const getAccountIcon = (type: string) => {
     switch (type) {
@@ -59,7 +99,7 @@ export default function AccountsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pt-6">
+    <div className="max-w-7xl mx-auto space-y-6 pt-6 font-sans">
       <header className="mb-8">
         <h2 className="font-serif text-3xl md:text-4xl text-on-surface font-semibold">
           Accounts
@@ -77,34 +117,48 @@ export default function AccountsPage() {
           </h3>
 
           {loading ? (
-            <div className="text-center py-12 text-on-surface-variant font-sans text-sm">
+            <div className="text-center py-12 text-on-surface-variant text-sm">
               Loading accounts...
             </div>
           ) : accounts.length === 0 ? (
-            <div className="glass-card rounded-2xl p-12 text-center text-on-surface-variant font-sans text-sm">
+            <div className="glass-card rounded-2xl p-12 text-center text-on-surface-variant text-sm">
               No accounts created yet. Use the form to add your first account.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {accounts.map((acc) => (
-                <div key={acc.id} className="glass-card rounded-xl p-6 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-primary">
+                <div key={acc.id} className="glass-card rounded-xl p-6 flex items-center justify-between group">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-primary shrink-0">
                       <span className="material-symbols-outlined">{getAccountIcon(acc.type)}</span>
                     </div>
-                    <div>
-                      <h4 className="font-sans font-semibold text-on-surface text-sm">
+                    <div className="truncate">
+                      <h4 className="font-semibold text-on-surface text-sm truncate">
                         {acc.name}
                       </h4>
-                      <p className="font-sans text-xs text-on-surface-variant uppercase tracking-wider">
+                      <p className="text-[10px] text-on-surface-variant uppercase tracking-wider">
                         {acc.type}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="font-sans font-bold text-on-surface text-lg">
-                      {formatCurrency(acc.startingBalance)}
-                    </span>
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className="text-right">
+                      <span className="font-bold text-on-surface text-lg block">
+                        {formatCurrency(acc.balance)}
+                      </span>
+                      {acc.balance !== acc.startingBalance && (
+                        <span className="text-[9px] text-on-surface-variant/70 block">
+                          Starts at {formatCurrency(acc.startingBalance)}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleDelete(acc.id)}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-on-surface-variant hover:text-error hover:bg-error/10 transition-all cursor-pointer"
+                      title="Delete Account"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">delete</span>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -119,14 +173,14 @@ export default function AccountsPage() {
             Create Account
           </h3>
 
-          <form ref={formRef} action={formAction} className="space-y-4">
-            {state?.error && (
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+            {error && (
               <div className="p-3 bg-[#93000a]/20 border border-[#ffb4ab]/30 rounded-lg text-sm text-[#ffb4ab]">
-                {state.error}
+                {error}
               </div>
             )}
 
-            {state?.success && (
+            {success && (
               <div className="p-3 bg-[#10b981]/20 border border-[#10b981]/30 rounded-lg text-sm text-[#10b981]">
                 Account created successfully!
               </div>
@@ -141,7 +195,7 @@ export default function AccountsPage() {
                 name="name"
                 type="text"
                 required
-                placeholder="e.g. HDFC Bank, Cash Wallet"
+                placeholder="e.g. Chase Checking, Cash Wallet"
                 className="w-full bg-[#0f172a]/60 border border-[#334155] rounded-lg px-4 py-3 text-sm text-white placeholder-on-surface-variant/40 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
               />
             </div>
@@ -157,7 +211,7 @@ export default function AccountsPage() {
                 className="w-full bg-[#0f172a]/60 border border-[#334155] rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer"
               >
                 <option value="bank">Bank Account</option>
-                <option value="card">Credit/Debit Card</option>
+                <option value="card">Credit Card</option>
                 <option value="cash">Cash Wallet</option>
               </select>
             </div>

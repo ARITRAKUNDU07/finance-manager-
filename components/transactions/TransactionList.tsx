@@ -3,7 +3,7 @@
 import React, { useState, useTransition } from "react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
-import { deleteTransaction } from "@/app/actions/transactions";
+import { deleteStoredTransaction } from "@/lib/storage";
 
 interface Account {
   id: string;
@@ -53,14 +53,14 @@ export default function TransactionList({
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (!confirm("Are you sure you want to delete this transaction?")) return;
     
-    const result = await deleteTransaction(id);
-    if (result.success) {
+    try {
+      deleteStoredTransaction(id);
       setTransactions((prev) => prev.filter((tx) => tx.id !== id));
-    } else {
-      alert(result.error || "Failed to delete transaction.");
+    } catch (err) {
+      alert("Failed to delete transaction.");
     }
   };
 

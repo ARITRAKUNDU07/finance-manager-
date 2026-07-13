@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useActionState, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createTransaction } from "@/app/actions/transactions";
+import { saveStoredTransaction } from "@/lib/storage";
 
 interface Account {
   id: string;
@@ -23,16 +23,11 @@ interface TransactionFormProps {
 
 export default function TransactionForm({ accounts, categories }: TransactionFormProps) {
   const router = useRouter();
-  const [state, formAction, isPending] = useActionState(createTransaction, null);
 
   const [type, setType] = useState<"expense" | "income" | "transfer">("expense");
   const [paymentMethod, setPaymentMethod] = useState("card");
-
-  useEffect(() => {
-    if (state?.success) {
-      router.push("/transactions");
-    }
-  }, [state, router]);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
 
   // Set default date to today's date in YYYY-MM-DD format
   const getTodayString = () => {
@@ -45,15 +40,79 @@ export default function TransactionForm({ accounts, categories }: TransactionFor
 
   const [txnDate, setTxnDate] = useState(getTodayString());
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsPending(true);
+
+    const formData = new FormData(e.currentTarget);
+    const amountStr = formData.get("amount") as string;
+    const accountId = formData.get("accountId") as string;
+    const categoryId = formData.get("categoryId") as string || null;
+    const transferToAccountId = formData.get("transferToAccountId") as string || null;
+    const note = formData.get("note") as string || null;
+    const dateStr = formData.get("txnDate") as string;
+
+    const amount = parseFloat(amountStr);
+    if (isNaN(amount) || amount <= 0) {
+      setError("Please enter a valid amount greater than 0.");
+      setIsPending(false);
+      return;
+    }
+
+    const amountMinor = Math.round(amount * 100);
+
+    if (!accountId) {
+      setError("Please select an account.");
+      setIsPending(false);
+      return;
+    }
+
+    if (type === "transfer" && !transferToAccountId) {
+      setError("Please select a destination account.");
+      setIsPending(false);
+      return;
+    }
+
+    if (type === "transfer" && accountId === transferToAccountId) {
+      setError("Source and destination accounts must be different.");
+      setIsPending(false);
+      return;
+    }
+
+    if (type !== "transfer" && !categoryId) {
+      setError("Please select a category.");
+      setIsPending(false);
+      return;
+    }
+
+    try {
+      saveStoredTransaction({
+        accountId,
+        categoryId: type === "transfer" ? null : categoryId,
+        type,
+        amountMinor,
+        transferToAccountId: type === "transfer" ? transferToAccountId : null,
+        note,
+        paymentMethod: type === "transfer" ? "bank" : paymentMethod,
+        txnDate: new Date(dateStr).toISOString(),
+      });
+      router.push("/transactions");
+    } catch (err: any) {
+      setError(err?.message || "Failed to save transaction.");
+    } finally {
+      setIsPending(false);
+    }
+  };
+
   return (
     <div className="glass-card w-full rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden font-sans">
-      {/* Subtle inner glow */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
       
-      <form action={formAction} className="space-y-8">
-        {state?.error && (
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {error && (
           <div className="p-3 bg-[#93000a]/20 border border-[#ffb4ab]/30 rounded-lg text-sm text-[#ffb4ab]">
-            {state.error}
+            {error}
           </div>
         )}
 
@@ -61,7 +120,6 @@ export default function TransactionForm({ accounts, categories }: TransactionFor
         <div className="w-full max-w-md mx-auto">
           <input type="hidden" name="type" value={type} />
           <div className="relative flex p-1 bg-[#0f172a]/60 border border-[#334155] rounded-full overflow-hidden select-none">
-            {/* Background slider */}
             <div
               className={`absolute top-1 bottom-1 rounded-full transition-all duration-300 ${
                 type === "expense"
@@ -102,29 +160,49 @@ export default function TransactionForm({ accounts, categories }: TransactionFor
           </div>
         </div>
 
-        {/* Amount Input */}
-        <div className="flex flex-col items-center justify-center py-4">
-          <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
-            Amount
-          </label>
-          <div className="relative flex items-baseline justify-center group">
-            <span className="text-on-surface-variant font-serif text-3xl mr-1 self-start mt-2">$</span>
-            <input
-              autoFocus
-              name="amount"
-              type="number"
-              step="0.01"
-              required
-              min="0.01"
-              placeholder="0.00"
-              className="bg-transparent border-none text-center font-serif text-5xl md:text-6xl font-bold text-on-surface focus:ring-0 w-[240px] p-0 placeholder:text-on-surface-variant/30 outline-none"
-            />
-          </div>
-          <div className="h-[1px] w-48 bg-[#334155] group-focus-within:bg-[#c3c6d4] transition-colors mt-3"></div>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Source Account Selector */}
+          {/* Amount Input */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider block">
+              Amount ($)
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                name="amount"
+                step="0.01"
+                min="0.01"
+                required
+                className="input-dark w-full rounded-lg py-3 pl-12 pr-4 text-on-surface text-sm placeholder:text-on-surface-variant/40"
+                placeholder="0.00"
+              />
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 pointer-events-none">
+                attach_money
+              </span>
+            </div>
+          </div>
+
+          {/* Date Picker */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider block">
+              Date
+            </label>
+            <div className="relative">
+              <input
+                type="date"
+                name="txnDate"
+                value={txnDate}
+                onChange={(e) => setTxnDate(e.target.value)}
+                required
+                className="input-dark w-full rounded-lg py-3 pl-12 pr-4 text-on-surface text-sm appearance-none cursor-pointer"
+              />
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 pointer-events-none">
+                calendar_today
+              </span>
+            </div>
+          </div>
+
+          {/* Account Selection */}
           <div className="space-y-2">
             <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider block">
               {type === "transfer" ? "Source Account" : "Account"}
@@ -141,7 +219,7 @@ export default function TransactionForm({ accounts, categories }: TransactionFor
                 </option>
                 {accounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
-                    {acc.name} ({acc.type})
+                    {acc.name} ({acc.type.toUpperCase()})
                   </option>
                 ))}
               </select>
@@ -172,7 +250,7 @@ export default function TransactionForm({ accounts, categories }: TransactionFor
                   </option>
                   {accounts.map((acc) => (
                     <option key={acc.id} value={acc.id}>
-                      {acc.name} ({acc.type})
+                      {acc.name} ({acc.type.toUpperCase()})
                     </option>
                   ))}
                 </select>
@@ -215,63 +293,35 @@ export default function TransactionForm({ accounts, categories }: TransactionFor
             </div>
           )}
 
-          {/* Date Picker */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider block">
-              Date
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                name="txnDate"
-                value={txnDate}
-                onChange={(e) => setTxnDate(e.target.value)}
-                required
-                className="input-dark w-full rounded-lg py-3 pl-12 pr-4 text-on-surface text-sm cursor-pointer [color-scheme:dark]"
-              />
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/70 pointer-events-none">
-                calendar_today
-              </span>
-            </div>
-          </div>
-
-          {/* Payment Method */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider block">
-              Payment Method
-            </label>
-            <input type="hidden" name="paymentMethod" value={paymentMethod} />
-            <div className="grid grid-cols-3 gap-3">
-              {["card", "bank", "cash"].map((method) => (
-                <button
-                  key={method}
-                  type="button"
-                  onClick={() => setPaymentMethod(method)}
-                  className={`input-dark rounded-lg p-3 text-center border transition-all flex flex-col items-center gap-2 cursor-pointer ${
-                    paymentMethod === method
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-[#334155] text-on-surface-variant"
-                  }`}
-                >
-                  <span className="material-symbols-outlined">
-                    {method === "card"
-                      ? "credit_card"
-                      : method === "bank"
-                      ? "account_balance"
-                      : "payments"}
-                  </span>
-                  <span className="text-[10px] uppercase font-semibold">
+          {/* Payment Method Selector (Expense/Income only) */}
+          {type !== "transfer" && (
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider block">
+                Payment Method
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {["card", "bank", "cash"].map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    onClick={() => setPaymentMethod(method)}
+                    className={`py-3 rounded-lg border text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                      paymentMethod === method
+                        ? "bg-[#1E293B] border-primary text-primary"
+                        : "border-[#334155] text-on-surface-variant hover:bg-surface-container"
+                    }`}
+                  >
                     {method}
-                  </span>
-                </button>
-              ))}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Note Field */}
+          {/* Note Input */}
           <div className="space-y-2 md:col-span-2">
             <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider block">
-              Note (Optional)
+              Memo / Notes
             </label>
             <div className="relative">
               <input

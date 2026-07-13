@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useActionState, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createOrUpdateBudget } from "@/app/actions/budgets";
 import { formatCurrency } from "@/lib/utils";
+import { saveStoredBudget, getStoredBudgetsWithSpending } from "@/lib/storage";
 
 interface Category {
   id: string;
@@ -35,10 +35,12 @@ export default function BudgetManager({
   const router = useRouter();
   const [monthYear, setMonthYear] = useState(currentMonthYear);
   const [budgets, setBudgets] = useState<BudgetItem[]>(initialBudgets);
-  
-  const [state, formAction, isPending] = useActionState(createOrUpdateBudget, null);
 
-  // Trigger reload when month selection changes
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+
+  // Trigger reload/update when month selection changes
   const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newMonth = e.target.value;
     setMonthYear(newMonth);
@@ -49,11 +51,46 @@ export default function BudgetManager({
     setBudgets(initialBudgets);
   }, [initialBudgets]);
 
-  useEffect(() => {
-    if (state?.success) {
-      router.refresh();
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(false);
+    setIsPending(true);
+
+    const formData = new FormData(e.currentTarget);
+    const categoryId = formData.get("categoryId") as string;
+    const limitStr = formData.get("limit") as string;
+
+    const limit = parseFloat(limitStr);
+    if (isNaN(limit) || limit < 0) {
+      setError("Please enter a valid budget limit.");
+      setIsPending(false);
+      return;
     }
-  }, [state, router]);
+
+    const limitMinor = Math.round(limit * 100);
+
+    try {
+      saveStoredBudget({
+        categoryId,
+        monthYear,
+        limitMinor,
+      });
+
+      // Update local state directly
+      const updated = getStoredBudgetsWithSpending(monthYear);
+      setBudgets(updated);
+      setSuccess(true);
+      
+      // Reset limit input
+      const limitInput = document.getElementById("limit") as HTMLInputElement;
+      if (limitInput) limitInput.value = "";
+    } catch (err: any) {
+      setError(err?.message || "Failed to configure budget.");
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   // Generates month selections (last 6 months and next 3 months)
   const getMonthOptions = () => {
@@ -220,14 +257,14 @@ export default function BudgetManager({
             Configure Budget
           </h3>
 
-          <form action={formAction} className="space-y-4">
-            {state?.error && (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
               <div className="p-3 bg-[#93000a]/20 border border-[#ffb4ab]/30 rounded-lg text-sm text-[#ffb4ab]">
-                {state.error}
+                {error}
               </div>
             )}
 
-            {state?.success && (
+            {success && (
               <div className="p-3 bg-[#10b981]/20 border border-[#10b981]/30 rounded-lg text-sm text-[#10b981]">
                 Budget updated successfully!
               </div>
