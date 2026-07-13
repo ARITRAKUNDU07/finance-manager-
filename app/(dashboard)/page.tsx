@@ -291,21 +291,8 @@ export default function DashboardPage() {
                   </p>
                 ) : (
                   <>
-                    <div className="w-full h-48 relative">
+                    <div className="w-full">
                       <CategoryPieChart data={pieChartData} />
-                    </div>
-                    <div className="w-full grid grid-cols-2 gap-3 mt-6">
-                      {pieChartData.slice(0, 6).map((item) => (
-                        <div key={item.name} className="flex items-center gap-2">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: item.color }}
-                          ></span>
-                          <span className="text-xs text-on-surface-variant font-sans truncate">
-                            {item.name} ({formatCurrency(item.value)})
-                          </span>
-                        </div>
-                      ))}
                     </div>
                   </>
                 )}

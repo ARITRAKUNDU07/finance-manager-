@@ -263,17 +263,19 @@ export default function ReportsView({ transactions }: ReportsViewProps) {
                   tickLine={false}
                   axisLine={false}
                   dx={-5}
-                  tickFormatter={(val) => `$${val}`}
+                  tickFormatter={(val) => `₹${val}`}
                 />
                 <Tooltip
-                  formatter={(value: any) => [`$${value}`, "Spent"]}
+                  formatter={(value: any) => [`₹${value}`, "Spent"]}
                   contentStyle={{
-                    backgroundColor: "rgba(30, 41, 59, 0.9)",
-                    borderColor: "#334155",
-                    borderRadius: "8px",
-                    color: "#e5e2e2",
+                    backgroundColor: "#ffffff",
+                    borderColor: "#000000",
+                    borderWidth: "3px",
+                    borderRadius: "0px",
+                    color: "#000000",
                     fontFamily: "Inter, sans-serif",
                     fontSize: "12px",
+                    boxShadow: "3px 3px 0px 0px #000000",
                   }}
                 />
                 <Bar
