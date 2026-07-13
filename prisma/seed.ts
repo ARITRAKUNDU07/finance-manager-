@@ -11,7 +11,12 @@ if (!databaseUrl) {
 }
 
 databaseUrl = databaseUrl.replace(/^['"]|['"]$/g, "");
-const pool = new pg.Pool({ connectionString: databaseUrl });
+const pool = new pg.Pool({
+  connectionString: databaseUrl,
+  ssl: databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1")
+    ? false
+    : { rejectUnauthorized: false }
+});
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
