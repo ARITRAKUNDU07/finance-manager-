@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 interface HeaderProps {
   userEmail: string | null | undefined;
@@ -8,6 +8,30 @@ interface HeaderProps {
 }
 
 export default function Header({ userEmail, isCollapsed }: HeaderProps) {
+  const [theme, setTheme] = useState("light");
+
+  useEffect(() => {
+    // Sync theme on load
+    const savedTheme = localStorage.getItem("fortuna_theme") || "light";
+    setTheme(savedTheme);
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "light" ? "dark" : "light";
+    setTheme(nextTheme);
+    localStorage.setItem("fortuna_theme", nextTheme);
+    if (nextTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
+
   return (
     <nav
       className={`bg-surface/40 fixed top-0 right-0 w-full h-16 backdrop-blur-3xl border-b border-outline-variant/30 flex justify-between items-center px-6 z-40 transition-all duration-300 ease-in-out ${
@@ -41,10 +65,24 @@ export default function Header({ userEmail, isCollapsed }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-6">
+        {/* Theme Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          className="text-on-surface-variant hover:text-primary transition-colors active:opacity-80 relative cursor-pointer"
+          title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+        >
+          <span className="material-symbols-outlined">
+            {theme === "light" ? "dark_mode" : "light_mode"}
+          </span>
+        </button>
+
+        {/* Notifications Button */}
         <button className="text-on-surface-variant hover:text-primary transition-colors active:opacity-80 relative cursor-pointer">
           <span className="material-symbols-outlined">notifications</span>
-          <span className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border border-[#0B0F19]"></span>
+          <span className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border border-surface"></span>
         </button>
+
+        {/* User Profile */}
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-surface-container overflow-hidden border border-outline-variant/30">
             <img

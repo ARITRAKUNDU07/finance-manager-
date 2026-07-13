@@ -13,70 +13,94 @@
   --color-tertiary-container: #fde8ef;
   --color-tertiary-fixed: #fad1df;
   --color-tertiary-fixed-dim: #e91e63;
-  --color-surface: #ffffff;
-  --color-surface-bright: #ffffff;
-  --color-surface-dim: #f3f4f6;
-  --color-surface-container: #ffffff;
-  --color-surface-container-low: #fafafa;
-  --color-surface-container-high: #f5f5f5;
-  --color-surface-container-highest: #eeeeee;
-  --color-surface-container-lowest: #ffffff;
-  --color-on-surface: #000000;
-  --color-on-surface-variant: #4b5563; /* Gray 600 */
-  --color-outline: #000000;
-  --color-outline-variant: #e5e7eb;
   --color-error: #f43f5e;
   --color-error-container: #ffe4e6;
   
+  /* Bind Tailwind tokens dynamically to our CSS custom variables */
+  --color-surface: var(--card-bg);
+  --color-surface-dim: var(--background);
+  --color-on-surface: var(--foreground);
+  --color-on-surface-variant: var(--text-on-surface-variant);
+  --color-outline: var(--border-color);
+  --color-outline-variant: var(--outline-variant);
+
   --font-sans: var(--font-inter);
   --font-serif: var(--font-outfit);
 }
 
+/* Design variables default (Light Mode) */
 :root {
-  --background: #fcfbf7; /* Friendly warm white background from screenshot */
+  --background: #fcfbf7; /* Gojek friendly warm-white background */
   --foreground: #000000;
+  --border-color: #000000;
+  --card-bg: #ffffff;
+  --shadow-color: #000000;
+  
+  --input-bg: #ffffff;
+  --input-shadow: #a78bfa; /* Light purple */
+  --btn-sec-shadow: #2dd4bf; /* Light teal */
+  
+  --text-on-surface-variant: #4b5563; /* Gray 600 */
+  --outline-variant: #e5e7eb;
+}
+
+/* Design variables override (Dark Mode) */
+.dark {
+  --background: #080808; /* Pure dark background */
+  --foreground: #ffffff;
+  --border-color: #ffffff;
+  --card-bg: #121212;
+  --shadow-color: #facc15; /* Saturated yellow shadows for contrast in dark mode */
+  
+  --input-bg: #121212;
+  --input-shadow: #a78bfa; /* Dark purple */
+  --btn-sec-shadow: #2dd4bf; /* Dark teal */
+  
+  --text-on-surface-variant: #e0e0e0;
+  --outline-variant: #333333;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Neo-Brutalist Gojek-Style Card */
 .glass-card {
-  background-color: #ffffff !important;
-  border: 3px solid #000000 !important;
-  box-shadow: 4px 4px 0px 0px #000000 !important;
-  border-radius: 20px !important; /* Rounded corners matching cards in the screenshot */
-  color: #000000 !important;
-  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background-color: var(--card-bg) !important;
+  border: 3px solid var(--border-color) !important;
+  box-shadow: 4px 4px 0px 0px var(--shadow-color) !important;
+  border-radius: 20px !important;
+  color: var(--foreground) !important;
+  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .glass-card:hover {
   transform: translate(-3px, -3px);
-  box-shadow: 7px 7px 0px 0px #000000 !important;
+  box-shadow: 7px 7px 0px 0px var(--shadow-color) !important;
 }
 
 .glass-card:active {
   transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px 0px #000000 !important;
+  box-shadow: 2px 2px 0px 0px var(--shadow-color) !important;
 }
 
 /* Neo-Brutalist Gojek-Style Inputs */
 .input-dark, select, input[type="text"], input[type="number"], input[type="date"] {
-  background-color: #ffffff !important;
-  border: 3px solid #000000 !important;
-  box-shadow: 3px 3px 0px 0px #000000 !important;
+  background-color: var(--input-bg) !important;
+  border: 3px solid var(--border-color) !important;
+  box-shadow: 3px 3px 0px 0px var(--shadow-color) !important;
   border-radius: 12px !important;
-  color: #000000 !important;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  color: var(--foreground) !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .input-dark:focus, select:focus, input:focus {
   outline: none !important;
   transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0px 0px #000000 !important;
-  border-color: #000000 !important;
+  box-shadow: 4px 4px 0px 0px var(--shadow-color) !important;
+  border-color: var(--border-color) !important;
 }
 
 /* Button overrides for Gojek Brutalism */
@@ -89,41 +113,41 @@ button {
 button.bg-primary, .bg-primary {
   background-color: #00a859 !important; /* Gojek Green */
   color: #ffffff !important;
-  border: 3px solid #000000 !important;
-  box-shadow: 4px 4px 0px 0px #000000 !important;
+  border: 3px solid var(--border-color) !important;
+  box-shadow: 4px 4px 0px 0px var(--shadow-color) !important;
   font-weight: 800 !important;
   font-family: var(--font-outfit), sans-serif !important;
-  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.2s ease !important;
 }
 
 button.bg-primary:hover:not(:disabled), .bg-primary:hover {
   transform: translate(-3px, -3px) !important;
-  box-shadow: 7px 7px 0px 0px #000000 !important;
+  box-shadow: 7px 7px 0px 0px var(--shadow-color) !important;
 }
 
 button.bg-primary:active:not(:disabled), .bg-primary:active {
   transform: translate(2px, 2px) !important;
-  box-shadow: 2px 2px 0px 0px #000000 !important;
+  box-shadow: 2px 2px 0px 0px var(--shadow-color) !important;
 }
 
 /* Secondary Button / Filter tags */
 button.border, .btn-secondary, button[type="button"]:not(.bg-primary) {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-  border: 3px solid #000000 !important;
-  box-shadow: 3px 3px 0px 0px #000000 !important;
+  background-color: var(--card-bg) !important;
+  color: var(--foreground) !important;
+  border: 3px solid var(--border-color) !important;
+  box-shadow: 3px 3px 0px 0px var(--shadow-color) !important;
   font-weight: 700 !important;
-  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s ease, border-color 0.2s ease !important;
 }
 
 button.border:hover:not(:disabled), button[type="button"]:not(.bg-primary):hover {
   transform: translate(-3px, -3px) !important;
-  box-shadow: 6px 6px 0px 0px #000000 !important;
+  box-shadow: 6px 6px 0px 0px var(--shadow-color) !important;
 }
 
 button.border:active:not(:disabled), button[type="button"]:not(.bg-primary):active {
   transform: translate(2px, 2px) !important;
-  box-shadow: 1px 1px 0px 0px #000000 !important;
+  box-shadow: 1px 1px 0px 0px var(--shadow-color) !important;
 }
 
 /* Warnings and highlights */
@@ -133,9 +157,10 @@ button.border:active:not(:disabled), button[type="button"]:not(.bg-primary):acti
 }
 
 .progress-bar-bg {
-  background-color: #e5e7eb !important;
-  border: 2px solid #000000;
-  border-radius: 9999px !important; /* Fully rounded progress bars */
+  background-color: var(--outline-variant) !important;
+  border: 2px solid var(--border-color);
+  border-radius: 9999px !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 /* Trend tags styling */
@@ -149,24 +174,27 @@ button.border:active:not(:disabled), button[type="button"]:not(.bg-primary):acti
   font-weight: 800;
 }
 
-/* Sidebar and Header layout overrides to fit Gojek-light style */
+/* Sidebar and Header layout overrides */
 aside {
-  background-color: #ffffff !important;
-  border-right: 3px solid #000000 !important;
+  background-color: var(--card-bg) !important;
+  border-right: 3px solid var(--border-color) !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease !important;
 }
 
 nav {
-  background-color: rgba(252, 251, 247, 0.8) !important; /* Matching body warm-white */
-  border-bottom: 3px solid #000000 !important;
-  color: #000000 !important;
+  background-color: var(--card-bg) !important;
+  border-bottom: 3px solid var(--border-color) !important;
+  color: var(--foreground) !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease !important;
 }
 
 nav input {
-  background-color: #ffffff !important;
-  border: 3px solid #000000 !important;
-  box-shadow: 2px 2px 0px 0px #000000 !important;
-  color: #000000 !important;
-  border-radius: 9999px !important; /* Rounded pill search as in mockup */
+  background-color: var(--input-bg) !important;
+  border: 3px solid var(--border-color) !important;
+  box-shadow: 2px 2px 0px 0px var(--shadow-color) !important;
+  color: var(--foreground) !important;
+  border-radius: 9999px !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
 /* Animations */
